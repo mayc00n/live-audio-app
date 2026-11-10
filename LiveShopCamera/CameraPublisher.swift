@@ -17,7 +17,9 @@ final class CameraPublisher: NSObject, ObservableObject {
     private static let sharedFactory: RTCPeerConnectionFactory = {
         RTCInitializeSSL()
         let encoders = RTCDefaultVideoEncoderFactory()
-        encoders.preferredCodec = encoders.supportedCodecs().first(where: { $0.name.uppercased() == "H264" })
+        if let h264 = encoders.supportedCodecs().first(where: { $0.name.uppercased() == "H264" }) {
+            encoders.preferredCodec = h264
+        }
         return RTCPeerConnectionFactory(encoderFactory: encoders, decoderFactory: RTCDefaultVideoDecoderFactory())
     }()
     private let factory = CameraPublisher.sharedFactory
