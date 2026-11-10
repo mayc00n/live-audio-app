@@ -1,0 +1,45 @@
+// !$*UTF8*$!
+{ archiveVersion = 1; classes = {}; objectVersion = 56; objects = {
+77CCB7C9D9F0285D3299B623 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveShopCameraApp.swift; sourceTree = "<group>"; };
+A20DA94F71C7D9B251FB4F16 = { isa = PBXBuildFile; fileRef = 77CCB7C9D9F0285D3299B623; };
+007EDA08B29496883EB24C88 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraScreen.swift; sourceTree = "<group>"; };
+7822D3E2E6CEC282E80B2EE1 = { isa = PBXBuildFile; fileRef = 007EDA08B29496883EB24C88; };
+86CE12C9E61B3A19B61FCC39 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPublisher.swift; sourceTree = "<group>"; };
+1B14EAF27887D34D92AB52BC = { isa = PBXBuildFile; fileRef = 86CE12C9E61B3A19B61FCC39; };
+FE46B943B64FD0D633C94239 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouter.swift; sourceTree = "<group>"; };
+DED4561796EEDEF522C83695 = { isa = PBXBuildFile; fileRef = FE46B943B64FD0D633C94239; };
+4279005B7178B1A15005A058 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pairing.swift; sourceTree = "<group>"; };
+A15D7C682CA42C7E07397732 = { isa = PBXBuildFile; fileRef = 4279005B7178B1A15005A058; };
+79A21E9D15C8E6E1646953CD = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScanner.swift; sourceTree = "<group>"; };
+4AD5E3DBD67C82AFA9D22B33 = { isa = PBXBuildFile; fileRef = 79A21E9D15C8E6E1646953CD; };
+9AC3B5AD93CBC0305C62F78F = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+473DDFF83CCD92586789821C = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingTests.swift; sourceTree = "<group>"; };
+75FECC993A01A8C426D3EC3D = { isa = PBXBuildFile; fileRef = 473DDFF83CCD92586789821C; };
+8089360E9D7CDCBDCB880033 = { isa = PBXBuildFile; fileRef = 4279005B7178B1A15005A058; };
+92B16DC9B42D05D4025159FE = { isa = PBXBuildFile; productRef = 874D0426335A142EA5E5273C; };
+874D0426335A142EA5E5273C = { isa = XCSwiftPackageProductDependency; package = D52EDB194D736D7F4BE73078; productName = WebRTC; };
+D52EDB194D736D7F4BE73078 = { isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/stasel/WebRTC.git"; requirement = { kind = exactVersion; version = 157.0.0; }; };
+681C948D238C526E9E3424E0 = { isa = PBXFileReference; explicitFileType = wrapper.application; path = LiveShopCamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
+F739566ED5280322FF98A798 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = LiveShopCameraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+878A52FC5FF6A57D50B7B870 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A20DA94F71C7D9B251FB4F16,7822D3E2E6CEC282E80B2EE1,1B14EAF27887D34D92AB52BC,DED4561796EEDEF522C83695,A15D7C682CA42C7E07397732,4AD5E3DBD67C82AFA9D22B33); runOnlyForDeploymentPostprocessing = 0; };
+E2AA269EB967A8853A258BFA = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (92B16DC9B42D05D4025159FE); runOnlyForDeploymentPostprocessing = 0; };
+41D311A605520FC7B8B9A980 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+DEE94446A282611C16F7781C = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (75FECC993A01A8C426D3EC3D,8089360E9D7CDCBDCB880033); runOnlyForDeploymentPostprocessing = 0; };
+B10CDED79664567B030B2B4F = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+FC233BDA2344D97687F5A251 = { isa = PBXGroup; children = (77CCB7C9D9F0285D3299B623,007EDA08B29496883EB24C88,86CE12C9E61B3A19B61FCC39,FE46B943B64FD0D633C94239,4279005B7178B1A15005A058,79A21E9D15C8E6E1646953CD,9AC3B5AD93CBC0305C62F78F); path = LiveShopCamera; sourceTree = "<group>"; };
+C4E2E7F217DE3642E7714F4E = { isa = PBXGroup; children = (473DDFF83CCD92586789821C); path = LiveShopCameraTests; sourceTree = "<group>"; };
+B9E7F2871A3402983868AFC8 = { isa = PBXGroup; children = (681C948D238C526E9E3424E0,F739566ED5280322FF98A798); name = Products; sourceTree = "<group>"; };
+C69913C7EE4DFDD011BE172F = { isa = PBXGroup; children = (FC233BDA2344D97687F5A251,C4E2E7F217DE3642E7714F4E,B9E7F2871A3402983868AFC8); sourceTree = "<group>"; };
+73EBF6644258C120893E685D = { isa = XCBuildConfiguration; buildSettings = { SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; DEBUG_INFORMATION_FORMAT = dwarf; }; name = Debug; };
+0B0C687DF8B6B8DC790B519C = { isa = XCBuildConfiguration; buildSettings = { SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; SWIFT_OPTIMIZATION_LEVEL = "-O"; DEBUG_INFORMATION_FORMAT = dwarf; }; name = Release; };
+B4E10CAA9C5E22150B71559C = { isa = XCConfigurationList; buildConfigurations = (73EBF6644258C120893E685D,0B0C687DF8B6B8DC790B519C); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+B00CCDD09424E369308D67FA = { isa = XCBuildConfiguration; buildSettings = { SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = "local.liveshop.camera"; CODE_SIGN_STYLE = Automatic; TARGETED_DEVICE_FAMILY = 1; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_EMIT_LOC_STRINGS = YES; INFOPLIST_FILE = LiveShopCamera/Info.plist; GENERATE_INFOPLIST_FILE = NO; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; }; name = Debug; };
+1B104479E55E37CF8A63CBDF = { isa = XCBuildConfiguration; buildSettings = { SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = "local.liveshop.camera"; CODE_SIGN_STYLE = Automatic; TARGETED_DEVICE_FAMILY = 1; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_EMIT_LOC_STRINGS = YES; INFOPLIST_FILE = LiveShopCamera/Info.plist; GENERATE_INFOPLIST_FILE = NO; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; }; name = Release; };
+7BCEE9A04133D8A2FED7D4D3 = { isa = XCConfigurationList; buildConfigurations = (B00CCDD09424E369308D67FA,1B104479E55E37CF8A63CBDF); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+DD3F495F7D6A5AA1C1769021 = { isa = XCBuildConfiguration; buildSettings = { SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = "local.liveshop.camera.tests"; CODE_SIGN_STYLE = Automatic; TARGETED_DEVICE_FAMILY = 1; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_EMIT_LOC_STRINGS = YES; GENERATE_INFOPLIST_FILE = YES; }; name = Debug; };
+E670BC2FFE794172EBC92AE3 = { isa = XCBuildConfiguration; buildSettings = { SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = "local.liveshop.camera.tests"; CODE_SIGN_STYLE = Automatic; TARGETED_DEVICE_FAMILY = 1; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_EMIT_LOC_STRINGS = YES; GENERATE_INFOPLIST_FILE = YES; }; name = Release; };
+AD7020964E1E033F765FE484 = { isa = XCConfigurationList; buildConfigurations = (DD3F495F7D6A5AA1C1769021,E670BC2FFE794172EBC92AE3); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+C1E9827DB735CA9BAA54A540 = { isa = PBXNativeTarget; buildConfigurationList = 7BCEE9A04133D8A2FED7D4D3; buildPhases = (878A52FC5FF6A57D50B7B870,E2AA269EB967A8853A258BFA,41D311A605520FC7B8B9A980); buildRules = (); dependencies = (); name = LiveShopCamera; packageProductDependencies = (874D0426335A142EA5E5273C); productName = LiveShopCamera; productReference = 681C948D238C526E9E3424E0; productType = "com.apple.product-type.application"; };
+9805CBD60EB4F66728D5D195 = { isa = PBXNativeTarget; buildConfigurationList = AD7020964E1E033F765FE484; buildPhases = (DEE94446A282611C16F7781C,B10CDED79664567B030B2B4F); buildRules = (); dependencies = (); name = LiveShopCameraTests; productName = LiveShopCameraTests; productReference = F739566ED5280322FF98A798; productType = "com.apple.product-type.bundle.unit-test"; };
+244210E48437B6556980A702 = { isa = PBXProject; attributes = { LastSwiftUpdateCheck = 1600; LastUpgradeCheck = 1600; }; buildConfigurationList = B4E10CAA9C5E22150B71559C; compatibilityVersion = "Xcode 14.0"; developmentRegion = pt; hasScannedForEncodings = 0; knownRegions = (pt,en,Base); mainGroup = C69913C7EE4DFDD011BE172F; packageReferences = (D52EDB194D736D7F4BE73078); productRefGroup = B9E7F2871A3402983868AFC8; projectDirPath = ""; projectRoot = ""; targets = (C1E9827DB735CA9BAA54A540,9805CBD60EB4F66728D5D195); };
+}; rootObject = 244210E48437B6556980A702; }
