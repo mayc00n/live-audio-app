@@ -1,10 +1,10 @@
 # Compilar e instalar usando Windows e GitHub
 
-Esta pasta contém apenas o app nativo, sem arquivos da extensão, certificados locais ou dados de pareamento. A primeira compilação em macOS ainda precisa ser executada. O fluxo pode revelar erros de compilação que não são verificáveis pelo Windows.
+Esta pasta contém apenas o app nativo, sem arquivos da extensão, certificados locais ou dados de pareamento. A [compilação em macOS para iPhone já passou](https://github.com/mayc00n/live-audio-app/actions/runs/42901148222). Baixe **LiveShopCamera-iPhone** em **Artifacts** nessa execução e avance à etapa 3. Os artefatos expiram após três dias; se necessário, gere novamente pela etapa 2.
 
 ## 1. Colocar o projeto em um repositório privado
 
-Crie um repositório **privado** chamado `liveshop-camera-ios` na sua conta GitHub e envie o conteúdo desta pasta para a raiz dele. `LiveShopCamera.xcodeproj`, `LiveShopCamera`, `scripts` e `.github` precisam ficar na raiz, sem uma pasta intermediária.
+O projeto já está publicado no repositório público autorizado [mayc00n/live-audio-app](https://github.com/mayc00n/live-audio-app). Você não precisa reenviar os arquivos. Se replicar em outro repositório, envie o conteúdo desta pasta para a raiz: `LiveShopCamera.xcodeproj`, `LiveShopCamera`, `scripts` e `.github` devem ficar na raiz, sem uma pasta intermediária.
 
 Se usar **Add file > Upload files** no navegador, atenção: o Windows pode ocultar a pasta `.github` e o site pode não recebê-la ao arrastar pastas. Confira que o arquivo `.github/workflows/ios-ipa.yml` apareceu. Se faltar, escolha **Add file > Create new file**, digite esse caminho completo no nome e cole o conteúdo do arquivo local correspondente. Depois confirme o envio.
 
