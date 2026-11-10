@@ -2,11 +2,11 @@
 
 O app captura câmera e microfone com APIs nativas do iOS e envia mídia por WebRTC diretamente à extensão LiveShop Copilot no Chrome. O VDO.Ninja não participa. O servidor Windows existente continua necessário apenas para pareamento/sinalização; não recebe nem retransmite os quadros da câmera.
 
-**Sem Mac próprio:** siga [COMECE-AQUI-WINDOWS.md](COMECE-AQUI-WINDOWS.md) para compilar em um runner macOS do GitHub Actions e assinar/instalar pelo AltStore no Windows. O workflow está preparado, mas ainda não foi executado na sua conta.
+**Sem Mac próprio:** siga [COMECE-AQUI-WINDOWS.md](COMECE-AQUI-WINDOWS.md) para compilar em um runner macOS do GitHub Actions e assinar/instalar pelo AltStore no Windows. A primeira [compilação para iPhone passou](https://github.com/mayc00n/live-audio-app/actions/runs/42901148222) em 10/11/2026 e gerou o pacote `LiveShopCamera-unsigned.ipa`.
 
 ## Estado real da entrega
 
-Projeto Swift/SwiftUI e Xcode preparados, com WebRTC 157.0.0 fixado, QR nativo, prévia sem corte, seleção de entrada de áudio e controles compatíveis com a extensão existente. Código criado no Windows: **a compilação no Xcode e a captura no iPhone físico ainda não foram verificadas**. Os testes de protocolo no Windows não substituem esses testes. Não há IPA assinado nesta entrega.
+Projeto Swift/SwiftUI e Xcode com WebRTC 157.0.0 fixado, QR nativo, prévia sem corte, seleção de entrada de áudio e controles compatíveis com a extensão existente. **Compilado com sucesso no Xcode 16.4 em um Mac do GitHub Actions para iPhone ARM64**. O IPA e a biblioteca WebRTC incorporada tiveram a integridade e a plataforma verificadas. A instalação, a captura no iPhone físico e a lapela ainda precisam de teste. Os testes de protocolo no Windows e a compilação não substituem esses testes físicos. O IPA é entregue sem assinatura para assinatura local pelo AltStore/AltServer.
 
 O app usa `AVAudioSession.availableInputs`, `setPreferredInput` e verifica `currentRoute.inputs`. Exigir microfone externo vem ativado. Se a entrada desejada não estiver realmente ativa, o app bloqueia o áudio e mostra o motivo. O nome/UID verificado identifica a rota do iOS; a confirmação final da lapela exige falar nela e ouvir/medir o som recebido no computador.
 
