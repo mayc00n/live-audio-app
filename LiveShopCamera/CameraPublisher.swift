@@ -78,9 +78,10 @@ final class CameraPublisher: NSObject, ObservableObject {
             Task { @MainActor in
                 guard let self else { return }
                 if type == AVAudioSession.InterruptionType.began.rawValue {
+                    self.audio.device.captureAllowed = false
                     self.audioTrack?.isEnabled = false
                     self.error = "O iOS interrompeu o áudio. Aguarde o fim da ligação/interrupção."
-                } else { self.audio.enforce(); self.syncAudio() }
+                } else { self.audio.resumeAfterInterruption(); self.syncAudio() }
             }
         }
     }

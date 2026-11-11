@@ -180,6 +180,21 @@ final class AudioRouter: ObservableObject {
             allowed = false; device.captureAllowed = false
             problem = "A captura de áudio não iniciou (código \(device.lastError)). Veja o diagnóstico."
         }
+        captureDiagnostic()
+    }
+
+    func resumeAfterInterruption() {
+        guard activated else { return }
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+            enforce()
+            device.resumeAfterInterruption()
+            recordTransition("Fim da interrupção")
+        } catch {
+            allowed = false; device.captureAllowed = false
+            problem = error.localizedDescription
+            captureDiagnostic()
+        }
     }
 
     func stop() {

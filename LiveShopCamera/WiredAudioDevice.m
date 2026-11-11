@@ -147,13 +147,19 @@ static OSStatus CaptureInput(void *context, AudioUnitRenderActionFlags *flags,
             session.sampleRate, (long)session.inputNumberOfChannels];
 }
 - (void)restartAfterRouteChange {
+    [self restartCapture:NO];
+}
+- (void)resumeAfterInterruption {
+    [self restartCapture:YES];
+}
+- (void)restartCapture:(BOOL)force {
     id<RTCAudioDeviceDelegate> delegate = self.audioDelegate;
     if (!delegate) return;
     __weak WiredAudioDevice *weakSelf = self;
     [delegate dispatchAsync:^{
         WiredAudioDevice *device = weakSelf;
         if (!device || !device.isRecording) return;
-        if ([device->_captureRoute isEqualToString:[device routeSignature]]) return;
+        if (!force && [device->_captureRoute isEqualToString:[device routeSignature]]) return;
         // All AudioUnit lifecycle operations stay on the ADM owning thread.
         [device stopRecording];
         [delegate notifyAudioInputInterrupted];

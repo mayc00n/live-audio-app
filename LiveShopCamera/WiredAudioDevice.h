@@ -10,4 +10,5 @@
 @property(atomic, readonly) NSInteger lastError;
 - (void)refreshRouteGate;
 - (void)restartAfterRouteChange;
+- (void)resumeAfterInterruption;
 @end
