@@ -1,5 +1,7 @@
 # LiveShop Camera para iPhone — primeira versão nativa
 
+Atualização **0.1.1**: [compilação para iPhone aprovada](https://github.com/mayc00n/live-audio-app/actions/runs/43056132828). Corrige a consulta de entradas após falha e adiciona diagnóstico comparando os modos Gravação, Comunicação e Padrão do iOS. Com o receptor conectado, use **Diagnosticar lapela nos três modos → Ver diagnóstico do microfone → Copiar diagnóstico**. Esse teste não transmite áudio nem confirma sozinho a captação física pela lapela.
+
 O app captura câmera e microfone com APIs nativas do iOS e envia mídia por WebRTC diretamente à extensão LiveShop Copilot no Chrome. O VDO.Ninja não participa. O servidor Windows existente continua necessário apenas para pareamento/sinalização; não recebe nem retransmite os quadros da câmera.
 
 **Sem Mac próprio:** siga [COMECE-AQUI-WINDOWS.md](COMECE-AQUI-WINDOWS.md) para compilar em um runner macOS do GitHub Actions e assinar/instalar pelo AltStore no Windows. A primeira [compilação para iPhone passou](https://github.com/mayc00n/live-audio-app/actions/runs/42901148222) em 10/11/2026 e gerou o pacote `LiveShopCamera-unsigned.ipa`.
