@@ -93,7 +93,7 @@ final class CameraPublisher: NSObject, ObservableObject {
                 let micOK = await AVCaptureDevice.requestAccess(for: .audio)
                 try check(id)
                 guard cameraOK && micOK else { throw CameraError.message("Permita câmera e microfone em Ajustes > LiveShop Camera.") }
-                try audio.activate()
+                try await audio.activate(); try check(id)
                 let source = factory.videoSource()
                 let track = factory.videoTrack(with: source, trackId: "lsc-native-video")
                 videoTrack = track
@@ -284,6 +284,21 @@ final class CameraPublisher: NSObject, ObservableObject {
     }
     func syncAudio() { audioTrack?.isEnabled = audio.allowed && audio.microphoneEnabled }
 
+    func inspectAudio(allModes: Bool = false) {
+        guard !busy, !running, !audio.checking else { return }
+        busy = true
+        actionTask = Task {
+            defer { busy = false }
+            guard await AVCaptureDevice.requestAccess(for: .audio) else {
+                self.error = "Permita o microfone em Ajustes > LiveShop Camera para consultar as entradas."
+                return
+            }
+            guard !Task.isCancelled else { return }
+            await audio.inspectInputs(allModes: allModes)
+            self.error = ""
+        }
+    }
+
     private func startStats(id: UUID) {
         statsTask = Task {
             while runID == id && !Task.isCancelled {
@@ -310,6 +325,7 @@ final class CameraPublisher: NSObject, ObservableObject {
         peer?.delegate = nil; peer?.close(); peer = nil
         capturer?.stopCapture(); capturer = nil; videoTrack = nil; audioTrack = nil
         audio.stop(); running = false; busy = false; cursor = 0
+        measuredFPS = "Aguardando"
         offerPublished = false; localCandidates = []; remoteCandidates = []
         signaling = nil; UIApplication.shared.isIdleTimerDisabled = false
         status = "Desconectado"

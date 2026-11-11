@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import WebRTC
 
 struct CameraScreen: View {
@@ -26,6 +27,9 @@ struct CameraScreen: View {
                     }
                     GroupBox("Microfone de lapela") {
                         VStack(alignment: .leading, spacing: 12) {
+                            Picker("Modo de captura", selection: $audio.captureMode) {
+                                ForEach(CaptureAudioMode.allCases) { mode in Text(mode.title).tag(mode) }
+                            }.disabled(camera.running || camera.busy)
                             Toggle("Exigir microfone externo", isOn: $audio.requireExternal)
                                 .onChange(of: audio.requireExternal) { _ in audio.enforce(); camera.syncAudio() }
                             Picker("Entrada", selection: $audio.selectedID) {
@@ -35,7 +39,19 @@ struct CameraScreen: View {
                                     Text("Entrada desconectada").tag(audio.selectedID)
                                 }
                             }.onChange(of: audio.selectedID) { _ in audio.enforce(); camera.syncAudio() }
-                            Button("Atualizar entradas") { audio.enforce(); camera.syncAudio() }
+                            Button("Atualizar entradas") {
+                                if camera.running { audio.enforce(); camera.syncAudio() }
+                                else { camera.inspectAudio() }
+                            }.disabled(camera.busy)
+                            Button("Diagnosticar lapela nos três modos") { camera.inspectAudio(allModes: true) }
+                                .disabled(camera.running || camera.busy)
+                            Text("Entradas disponíveis: \(audio.inputs.count)").font(.caption)
+                            DisclosureGroup("Ver diagnóstico do microfone") {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(audio.diagnostic).font(.caption).textSelection(.enabled)
+                                    Button("Copiar diagnóstico") { UIPasteboard.general.string = audio.diagnostic }
+                                }
+                            }
                             Toggle("Enviar áudio", isOn: $audio.microphoneEnabled)
                                 .onChange(of: audio.microphoneEnabled) { _ in audio.enforce(); camera.syncAudio() }
                             Text("Entrada ativa: \(audio.route)").font(.callout).textSelection(.enabled)
@@ -61,7 +77,7 @@ struct CameraScreen: View {
                     Text("Mantenha o app aberto e o iPhone desbloqueado. Câmera e áudio seguem por WebRTC diretamente ao navegador do computador. O servidor local apenas faz o pareamento.")
                         .font(.caption).foregroundStyle(.secondary)
                 }.padding()
-            }.navigationTitle("LiveShop Camera")
+            }.navigationTitle("LiveShop Camera 0.1.1")
         }
         .sheet(isPresented: $scanning) {
             QRScanner { result in
