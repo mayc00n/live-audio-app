@@ -107,7 +107,7 @@ final class AudioRouter: ObservableObject {
             guard current == generation, !Task.isCancelled else { return }
             refresh()
         } catch { problem = error.localizedDescription }
-        diagnostic = "LiveShop Camera 0.1.1 — diagnóstico local\niOS: \(UIDevice.current.systemVersion)\n\n" + reports.joined(separator: "\n\n") +
+        diagnostic = "LiveShop Camera 0.1.2 — diagnóstico local\niOS: \(UIDevice.current.systemVersion)\n\n" + reports.joined(separator: "\n\n") +
             "\n\nSem gravação, token de pareamento ou identificadores de dispositivo. Nenhum áudio é enviado por este diagnóstico."
         if requireExternal && !inputs.contains(where: { $0.external }) {
             problem = "O iOS não listou USB, fone com microfone ou entrada de linha neste modo. Veja o diagnóstico dos três modos; o receptor pode aparecer com outra identificação."
@@ -123,7 +123,7 @@ final class AudioRouter: ObservableObject {
     }
 
     private func captureDiagnostic() {
-        diagnostic = "LiveShop Camera 0.1.1\n" + snapshot()
+        diagnostic = "LiveShop Camera 0.1.2\n" + snapshot()
     }
 
     func refresh() {
@@ -151,13 +151,17 @@ final class AudioRouter: ObservableObject {
         guard !requireExternal || isExternal(desired) else {
             throw CameraError.message("A entrada escolhida é interna. Selecione a lapela ou desative Exigir microfone externo para testar sem ela.")
         }
-        if session.preferredInput?.uid != desired.uid { try session.setPreferredInput(desired) }
+        if session.preferredInput?.uid != desired.uid || !session.currentRoute.inputs.contains(where: { $0.uid == desired.uid }) {
+            try session.setPreferredInput(desired)
+        }
         refresh()
         guard session.currentRoute.inputs.contains(where: { $0.uid == desired.uid }) else {
             throw CameraError.message("O iOS ainda não ativou a entrada escolhida. O áudio foi bloqueado para não enviar o microfone interno por engano.")
         }
         allowed = true; problem = ""
-        if rtc.isAudioEnabled != microphoneEnabled { rtc.isAudioEnabled = microphoneEnabled }
+        // Mute the outgoing RTC track, not the capture unit. Stopping the unit during
+        // a temporary route change can itself make wired inputs disappear again.
+        if !rtc.isAudioEnabled { rtc.isAudioEnabled = true }
     }
 
     func enforce() {
@@ -165,7 +169,7 @@ final class AudioRouter: ObservableObject {
         rtc.lockForConfiguration()
         defer { rtc.unlockForConfiguration() }
         do { try selectRoute() }
-        catch { allowed = false; rtc.isAudioEnabled = false; problem = error.localizedDescription; refresh() }
+        catch { allowed = false; problem = error.localizedDescription; refresh() }
     }
 
     func stop() {

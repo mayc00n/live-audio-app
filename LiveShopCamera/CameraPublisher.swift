@@ -3,6 +3,23 @@ import Combine
 import UIKit
 import WebRTC
 
+enum NativeLens: String, CaseIterable, Identifiable {
+    case ultraWide, wide, front
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .ultraWide: return "0,5x — Ultra-angular traseira"
+        case .wide: return "1x — Traseira"
+        case .front: return "Frontal"
+        }
+    }
+    var position: AVCaptureDevice.Position { self == .front ? .front : .back }
+    var deviceType: AVCaptureDevice.DeviceType { self == .ultraWide ? .builtInUltraWideCamera : .builtInWideAngleCamera }
+    var device: AVCaptureDevice? {
+        AVCaptureDevice.DiscoverySession(deviceTypes: [deviceType], mediaType: .video, position: position).devices.first
+    }
+}
+
 @MainActor
 final class CameraPublisher: NSObject, ObservableObject {
     @Published var pairingURL = ""
@@ -13,6 +30,10 @@ final class CameraPublisher: NSObject, ObservableObject {
     @Published private(set) var videoTrack: RTCVideoTrack?
     @Published private(set) var measuredFPS = "Aguardando"
     @Published var preset = "1280x720@30"
+    @Published private(set) var selectedLens: NativeLens = .wide
+    @Published private(set) var sentAudioPackets = 0
+    @Published private(set) var sourceAudioLevel: Double = 0
+    var availableLenses: [NativeLens] { NativeLens.allCases.filter { $0.device != nil } }
     let audio = AudioRouter()
     private static let sharedFactory: RTCPeerConnectionFactory = {
         RTCInitializeSSL()
@@ -37,7 +58,8 @@ final class CameraPublisher: NSObject, ObservableObject {
     private var offerPublished = false
     private var flushing = false
     private var negotiating = false
-    private var position: AVCaptureDevice.Position = .back
+    private var position: AVCaptureDevice.Position { selectedLens.position }
+    private var rearLens: NativeLens = .wide
     private var peerGeneration = UUID()
     private var width = 1280, height = 720, fps = 30
     private var routeObserver: NSObjectProtocol?
@@ -65,10 +87,11 @@ final class CameraPublisher: NSObject, ObservableObject {
     }
     private func telemetry() -> [String: Any] {
         ["captureClient": "ios-native", "streaming": running, "facingMode": position == .back ? "environment" : "user",
-         "deviceLabel": "LiveShop Camera nativa — \(position == .back ? "Traseira" : "Frontal")",
+         "deviceLabel": "LiveShop Camera nativa — \(selectedLens.title)", "nativeLens": selectedLens.rawValue,
          "resolutionPreset": preset, "activeWidth": width, "activeHeight": height, "activeFps": fps,
          "audioEnabled": audio.allowed && audio.microphoneEnabled, "audioTrackPresent": audioTrack != nil,
-         "audioDeviceLabel": audio.route, "audioError": audio.problem, "safariBackgrounded": false]
+         "audioDeviceLabel": audio.route, "audioError": audio.problem,
+         "audioPacketsSent": sentAudioPackets, "sourceAudioLevel": sourceAudioLevel, "safariBackgrounded": false]
     }
     private func send(_ type: String, payload: [String: Any] = [:]) async throws {
         guard let signaling else { throw CancellationError() }
@@ -123,7 +146,7 @@ final class CameraPublisher: NSObject, ObservableObject {
     }
 
     private func configureCapture(_ capture: RTCCameraVideoCapturer) async throws {
-        guard let device = RTCCameraVideoCapturer.captureDevices().first(where: { $0.position == position }) else {
+        guard let device = selectedLens.device else {
             throw CameraError.message("Câmera indisponível.")
         }
         let pieces = preset.split(separator: "@"); let dimensions = pieces[0].split(separator: "x")
@@ -247,7 +270,7 @@ final class CameraPublisher: NSObject, ObservableObject {
             if pc.remoteDescription == nil { remoteCandidates.append(candidate) } else { try await add(candidate, to: pc) }
         case "REQUEST_OFFER": try await offer(id: id)
         case "SWITCH_FACING":
-            position = message.payload.facingMode.map { $0 == "user" ? .front : .back } ?? (position == .back ? .front : .back)
+            selectedLens = message.payload.facingMode.map { $0 == "user" ? .front : rearLens } ?? (position == .back ? .front : rearLens)
             try await restartCapture(id: id)
         case "SET_RESOLUTION":
             if let value = message.payload.resolutionPreset,
@@ -278,11 +301,24 @@ final class CameraPublisher: NSObject, ObservableObject {
         busy = true
         actionTask = Task {
             defer { busy = false }
-            position = position == .back ? .front : .back
+            selectedLens = position == .back ? .front : rearLens
             do { try await restartCapture(id: id) } catch { self.error = error.localizedDescription }
         }
     }
     func syncAudio() { audioTrack?.isEnabled = audio.allowed && audio.microphoneEnabled }
+
+    func changeLens(_ lens: NativeLens) {
+        guard !busy, lens != selectedLens, lens.device != nil else { return }
+        selectedLens = lens
+        if lens != .front { rearLens = lens }
+        guard running, let id = runID else { return }
+        busy = true
+        actionTask = Task {
+            defer { busy = false }
+            do { try await restartCapture(id: id) }
+            catch { self.error = error.localizedDescription }
+        }
+    }
 
     func inspectAudio(allModes: Bool = false) {
         guard !busy, !running, !audio.checking else { return }
@@ -306,9 +342,15 @@ final class CameraPublisher: NSObject, ObservableObject {
                     pc.statistics { [weak self] report in
                         let video = report.statistics.values.first { $0.type == "outbound-rtp" && ($0.values["kind"] as? String) == "video" }
                         let rate = video?.values["framesPerSecond"] as? NSNumber
+                        let outboundAudio = report.statistics.values.first { $0.type == "outbound-rtp" && ($0.values["kind"] as? String) == "audio" }
+                        let sourceAudio = report.statistics.values.first { $0.type == "media-source" && ($0.values["kind"] as? String) == "audio" }
+                        let packets = outboundAudio?.values["packetsSent"] as? NSNumber
+                        let level = sourceAudio?.values["audioLevel"] as? NSNumber
                         Task { @MainActor in
                             guard let self, self.runID == id else { return }
                             self.measuredFPS = rate.map { String(format: "%.1f FPS enviados", $0.doubleValue) } ?? "Medindo FPS…"
+                            self.sentAudioPackets = packets?.intValue ?? 0
+                            self.sourceAudioLevel = level?.doubleValue ?? 0
                         }
                     }
                     audio.enforce(); syncAudio()
@@ -326,6 +368,7 @@ final class CameraPublisher: NSObject, ObservableObject {
         capturer?.stopCapture(); capturer = nil; videoTrack = nil; audioTrack = nil
         audio.stop(); running = false; busy = false; cursor = 0
         measuredFPS = "Aguardando"
+        sentAudioPackets = 0; sourceAudioLevel = 0
         offerPublished = false; localCandidates = []; remoteCandidates = []
         signaling = nil; UIApplication.shared.isIdleTimerDisabled = false
         status = "Desconectado"

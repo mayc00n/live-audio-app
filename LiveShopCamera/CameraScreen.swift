@@ -14,6 +14,9 @@ struct CameraScreen: View {
                     NativePreview(track: camera.videoTrack)
                         .frame(height: 320).background(.black).clipShape(RoundedRectangle(cornerRadius: 16))
                     if !camera.error.isEmpty { Text(camera.error).foregroundStyle(.orange).textSelection(.enabled) }
+                    Picker("Lente da câmera", selection: Binding(get: { camera.selectedLens }, set: { camera.changeLens($0) })) {
+                        ForEach(camera.availableLenses) { lens in Text(lens.title).tag(lens) }
+                    }.disabled(camera.busy)
                     GroupBox("Conexão com o computador") {
                         VStack(alignment: .leading, spacing: 12) {
                             TextField("URL HTTPS do QR da extensão", text: $camera.pairingURL, axis: .vertical)
@@ -55,6 +58,8 @@ struct CameraScreen: View {
                             Toggle("Enviar áudio", isOn: $audio.microphoneEnabled)
                                 .onChange(of: audio.microphoneEnabled) { _ in audio.enforce(); camera.syncAudio() }
                             Text("Entrada ativa: \(audio.route)").font(.callout).textSelection(.enabled)
+                            Text("Áudio enviado: \(camera.sentAudioPackets) pacotes • nível na origem: \(Int(camera.sourceAudioLevel * 100))%")
+                                .font(.caption).monospacedDigit()
                             if !audio.problem.isEmpty { Text(audio.problem).font(.callout).foregroundStyle(.orange) }
                             Text("Conecte o receptor antes de iniciar. Se a lapela cair, o áudio é bloqueado em vez de substituir pelo microfone interno. Confirme a captura falando na lapela e conferindo o gerenciador.")
                                 .font(.caption).foregroundStyle(.secondary)
@@ -77,7 +82,7 @@ struct CameraScreen: View {
                     Text("Mantenha o app aberto e o iPhone desbloqueado. Câmera e áudio seguem por WebRTC diretamente ao navegador do computador. O servidor local apenas faz o pareamento.")
                         .font(.caption).foregroundStyle(.secondary)
                 }.padding()
-            }.navigationTitle("LiveShop Camera 0.1.1")
+            }.navigationTitle("LiveShop Camera 0.1.2")
         }
         .sheet(isPresented: $scanning) {
             QRScanner { result in

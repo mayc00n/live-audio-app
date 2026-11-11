@@ -6,8 +6,8 @@
   <key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
   <key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.1.1</string>
-  <key>CFBundleVersion</key><string>2</string>
+  <key>CFBundleShortVersionString</key><string>0.1.2</string>
+  <key>CFBundleVersion</key><string>3</string>
   <key>LSRequiresIPhoneOS</key><true/>
   <key>NSCameraUsageDescription</key><string>Transmitir sua câmera diretamente à extensão LiveShop Copilot e ler seu QR de pareamento.</string>
   <key>NSMicrophoneUsageDescription</key><string>Capturar a lapela Lightning ou o microfone escolhido para sua live.</string>
