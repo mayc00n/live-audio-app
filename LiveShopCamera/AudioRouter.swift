@@ -126,7 +126,7 @@ final class AudioRouter: ObservableObject {
 
     private func captureDiagnostic() {
         diagnostic = "LiveShop Camera 0.1.3 — captura RemoteIO\n" + snapshot() +
-            "\n\nMudanças durante a conexão:\n" + transitionLog.joined(separator: "\n\n")
+            "\nErro de captura: \(device.lastError)\n\nMudanças durante a conexão:\n" + transitionLog.joined(separator: "\n\n")
     }
 
     func refresh() {

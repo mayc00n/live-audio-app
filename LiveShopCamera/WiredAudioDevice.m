@@ -9,6 +9,7 @@ static const double CaptureRate = 48000;
     AudioUnit _unit;
     int16_t *_samples;
     id _routeObserver;
+    NSString *_captureRoute;
 }
 @property(nonatomic, strong) id<RTCAudioDeviceDelegate> audioDelegate;
 @property(atomic, readwrite) BOOL isInitialized;
@@ -17,6 +18,7 @@ static const double CaptureRate = 48000;
 @property(atomic, readwrite) BOOL isRecording;
 @property(atomic, readwrite) BOOL isPlaying;
 @property(atomic, readwrite) NSInteger lastError;
+- (OSStatus)captureWithFlags:(AudioUnitRenderActionFlags *)flags timestamp:(const AudioTimeStamp *)timestamp frames:(UInt32)frames;
 @end
 
 @implementation WiredAudioDevice
@@ -74,18 +76,19 @@ static const double CaptureRate = 48000;
 static OSStatus CaptureInput(void *context, AudioUnitRenderActionFlags *flags,
                             const AudioTimeStamp *timestamp, UInt32 bus,
                             UInt32 frames, AudioBufferList *unused) {
-    WiredAudioDevice *device = (__bridge WiredAudioDevice *)context;
+    return [(__bridge WiredAudioDevice *)context captureWithFlags:flags timestamp:timestamp frames:frames];
+}
+- (OSStatus)captureWithFlags:(AudioUnitRenderActionFlags *)flags timestamp:(const AudioTimeStamp *)timestamp frames:(UInt32)frames {
     if (frames > MaxCaptureFrames) return kAudioUnitErr_TooManyFramesToProcess;
     AudioBufferList data = { .mNumberBuffers = 1,
         .mBuffers = {{ .mNumberChannels = 1, .mDataByteSize = frames * sizeof(int16_t),
-                       .mData = device->_samples }} };
-    OSStatus result = AudioUnitRender(device->_unit, flags, timestamp, 1, frames, &data);
-    if (result != noErr) { device.lastError = result; return result; }
-    // Preserve timing with silence while the receiver is unavailable. Never send
-    // samples captured from the fallback built-in microphone.
-    if (!device.captureAllowed) memset(device->_samples, 0, frames * sizeof(int16_t));
-    id<RTCAudioDeviceDelegate> delegate = device.audioDelegate;
-    if (!device.isRecording || !delegate) return noErr;
+                       .mData = _samples }} };
+    OSStatus result = AudioUnitRender(_unit, flags, timestamp, 1, frames, &data);
+    if (result != noErr) { self.lastError = result; return result; }
+    // Keep the stream clock running with silence while its chosen input is lost.
+    if (!self.captureAllowed) memset(_samples, 0, frames * sizeof(int16_t));
+    id<RTCAudioDeviceDelegate> delegate = self.audioDelegate;
+    if (!self.isRecording || !delegate) return noErr;
     return delegate.deliverRecordedData(flags, timestamp, 1, frames, &data, NULL, nil);
 }
 - (BOOL)createUnit {
@@ -124,6 +127,7 @@ static OSStatus CaptureInput(void *context, AudioUnitRenderActionFlags *flags,
     if (self.isRecording) return YES;
     if (!_samples || (![self createUnit])) return NO;
     [self refreshRouteGate];
+    _captureRoute = [self routeSignature];
     [self.audioDelegate notifyAudioInputParametersChange];
     self.isRecording = YES;
     OSStatus result = AudioOutputUnitStart(_unit);
@@ -135,6 +139,13 @@ static OSStatus CaptureInput(void *context, AudioUnitRenderActionFlags *flags,
 - (BOOL)stopRecording {
     self.isRecording = NO; self.captureAllowed = NO; [self disposeUnit]; return YES;
 }
+- (NSString *)routeSignature {
+    AVAudioSession *session = AVAudioSession.sharedInstance;
+    NSMutableArray<NSString *> *ports = [NSMutableArray array];
+    for (AVAudioSessionPortDescription *port in session.currentRoute.inputs) [ports addObject:port.UID];
+    return [NSString stringWithFormat:@"%@|%.0f|%ld", [ports componentsJoinedByString:@","],
+            session.sampleRate, (long)session.inputNumberOfChannels];
+}
 - (void)restartAfterRouteChange {
     id<RTCAudioDeviceDelegate> delegate = self.audioDelegate;
     if (!delegate) return;
@@ -142,6 +153,7 @@ static OSStatus CaptureInput(void *context, AudioUnitRenderActionFlags *flags,
     [delegate dispatchAsync:^{
         WiredAudioDevice *device = weakSelf;
         if (!device || !device.isRecording) return;
+        if ([device->_captureRoute isEqualToString:[device routeSignature]]) return;
         // All AudioUnit lifecycle operations stay on the ADM owning thread.
         [device stopRecording];
         [delegate notifyAudioInputInterrupted];
