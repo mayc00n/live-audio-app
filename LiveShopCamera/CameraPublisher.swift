@@ -35,15 +35,14 @@ final class CameraPublisher: NSObject, ObservableObject {
     @Published private(set) var sourceAudioLevel: Double = 0
     var availableLenses: [NativeLens] { NativeLens.allCases.filter { $0.device != nil } }
     let audio = AudioRouter()
-    private static let sharedFactory: RTCPeerConnectionFactory = {
+    private lazy var factory: RTCPeerConnectionFactory = {
         RTCInitializeSSL()
         let encoders = RTCDefaultVideoEncoderFactory()
         if let h264 = encoders.supportedCodecs().first(where: { $0.name.uppercased() == "H264" }) {
             encoders.preferredCodec = h264
         }
-        return RTCPeerConnectionFactory(encoderFactory: encoders, decoderFactory: RTCDefaultVideoDecoderFactory())
+        return RTCPeerConnectionFactory(encoderFactory: encoders, decoderFactory: RTCDefaultVideoDecoderFactory(), audioDevice: audio.device)
     }()
-    private let factory = CameraPublisher.sharedFactory
     private var peer: RTCPeerConnection?
     private var capturer: RTCCameraVideoCapturer?
     private var audioTrack: RTCAudioTrack?
@@ -68,7 +67,11 @@ final class CameraPublisher: NSObject, ObservableObject {
     override init() {
         super.init()
         routeObserver = NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.audio.enforce(); self?.syncAudio() }
+            Task { @MainActor in
+                guard let self else { return }
+                self.audio.enforce(); self.syncAudio()
+                self.audio.device.restartAfterRouteChange()
+            }
         }
         interruptionObserver = NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] note in
             let type = (note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt) ?? 0
@@ -116,19 +119,19 @@ final class CameraPublisher: NSObject, ObservableObject {
                 let micOK = await AVCaptureDevice.requestAccess(for: .audio)
                 try check(id)
                 guard cameraOK && micOK else { throw CameraError.message("Permita câmera e microfone em Ajustes > LiveShop Camera.") }
-                try await audio.activate(); try check(id)
+                try await audio.activate(); audio.recordTransition("Antes da câmera"); try check(id)
                 let source = factory.videoSource()
                 let track = factory.videoTrack(with: source, trackId: "lsc-native-video")
                 videoTrack = track
                 let capture = RTCCameraVideoCapturer(delegate: source); capturer = capture
-                try await configureCapture(capture); try check(id)
+                try await configureCapture(capture); audio.enforce(); audio.recordTransition("Câmera iniciada"); try check(id)
                 let audioSource = factory.audioSource(with: RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: [
                     "googEchoCancellation": "false", "googAutoGainControl": "false", "googNoiseSuppression": "false"]))
                 audioTrack = factory.audioTrack(with: audioSource, trackId: "lsc-native-audio")
                 syncAudio(); running = true
                 UIApplication.shared.isIdleTimerDisabled = true
                 try await send("IPHONE_PAGE_OPENED")
-                try await offer(id: id); try check(id)
+                try await offer(id: id); audio.enforce(); audio.recordTransition("Conexão WebRTC criada"); try check(id)
                 startPolling(id: id); startStats(id: id)
             } catch is CancellationError { }
             catch {
@@ -149,6 +152,7 @@ final class CameraPublisher: NSObject, ObservableObject {
         guard let device = selectedLens.device else {
             throw CameraError.message("Câmera indisponível.")
         }
+        capture.captureSession.automaticallyConfiguresApplicationAudioSession = false
         let pieces = preset.split(separator: "@"); let dimensions = pieces[0].split(separator: "x")
         let targetW = Int32(dimensions.first.flatMap { Int($0) } ?? 1280)
         let targetH = Int32(dimensions.last.flatMap { Int($0) } ?? 720)

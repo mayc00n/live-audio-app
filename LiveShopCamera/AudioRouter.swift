@@ -38,26 +38,23 @@ final class AudioRouter: ObservableObject {
     private(set) var allowed = false
     private var activated = false
     private var generation = 0
-    private let rtc = RTCAudioSession.sharedInstance()
-
-    init() { rtc.useManualAudio = true; rtc.isAudioEnabled = false }
+    let device = WiredAudioDevice()
+    private var transitionLog: [String] = []
+    private var pinnedExternalID = ""
 
     private func isExternal(_ input: AVAudioSessionPortDescription) -> Bool {
         [.usbAudio, .headsetMic, .lineIn].contains(input.portType)
     }
 
     private func configure() throws {
-        let config = RTCAudioSessionConfiguration.webRTC()
-        config.category = AVAudioSession.Category.playAndRecord.rawValue
-        config.categoryOptions = [.allowBluetooth, .mixWithOthers]
-        config.mode = captureMode.sessionMode.rawValue
-        config.sampleRate = 48_000
-        config.ioBufferDuration = 0.01
-        RTCAudioSessionConfiguration.setWebRTC(config)
-        rtc.lockForConfiguration()
-        defer { rtc.unlockForConfiguration() }
-        if activated { try rtc.setConfiguration(config) }
-        else { try rtc.setConfiguration(config, active: true) }
+        let session = AVAudioSession.sharedInstance()
+        // Recording-style RemoteIO owns capture. No WebRTC VoiceProcessingIO is
+        // allowed to reopen this session in a telephony configuration.
+        try session.setCategory(.playAndRecord, mode: captureMode.sessionMode,
+                                options: [.allowBluetooth, .mixWithOthers])
+        try session.setPreferredSampleRate(48_000)
+        try session.setPreferredIOBufferDuration(0.01)
+        if !activated { try session.setActive(true) }
         activated = true
     }
 
@@ -74,8 +71,6 @@ final class AudioRouter: ObservableObject {
         }
         try Task.checkCancellation()
         guard current == generation else { throw CancellationError() }
-        rtc.lockForConfiguration()
-        defer { rtc.unlockForConfiguration() }
         do { try selectRoute(); captureDiagnostic() }
         catch { captureDiagnostic(); throw error }
     }
@@ -107,7 +102,7 @@ final class AudioRouter: ObservableObject {
             guard current == generation, !Task.isCancelled else { return }
             refresh()
         } catch { problem = error.localizedDescription }
-        diagnostic = "LiveShop Camera 0.1.2 — diagnóstico local\niOS: \(UIDevice.current.systemVersion)\n\n" + reports.joined(separator: "\n\n") +
+        diagnostic = "LiveShop Camera 0.1.3 — diagnóstico local\niOS: \(UIDevice.current.systemVersion)\n\n" + reports.joined(separator: "\n\n") +
             "\n\nSem gravação, token de pareamento ou identificadores de dispositivo. Nenhum áudio é enviado por este diagnóstico."
         if requireExternal && !inputs.contains(where: { $0.external }) {
             problem = "O iOS não listou USB, fone com microfone ou entrada de linha neste modo. Veja o diagnóstico dos três modos; o receptor pode aparecer com outra identificação."
@@ -122,8 +117,16 @@ final class AudioRouter: ObservableObject {
             descriptions.joined(separator: "\n") + "\nRota informada pelo iOS: \(route)\nTaxa: \(Int(session.sampleRate)) Hz"
     }
 
+    func recordTransition(_ stage: String) {
+        refresh()
+        transitionLog.append("[\(stage)]\n" + snapshot())
+        transitionLog = Array(transitionLog.suffix(8))
+        captureDiagnostic()
+    }
+
     private func captureDiagnostic() {
-        diagnostic = "LiveShop Camera 0.1.2\n" + snapshot()
+        diagnostic = "LiveShop Camera 0.1.3 — captura RemoteIO\n" + snapshot() +
+            "\n\nMudanças durante a conexão:\n" + transitionLog.joined(separator: "\n\n")
     }
 
     func refresh() {
@@ -141,7 +144,7 @@ final class AudioRouter: ObservableObject {
         if !selectedID.isEmpty {
             desired = available.first(where: { $0.uid == selectedID })
         } else if requireExternal {
-            desired = available.first(where: isExternal)
+            desired = pinnedExternalID.isEmpty ? available.first(where: isExternal) : available.first(where: { $0.uid == pinnedExternalID })
         } else {
             desired = available.first(where: { $0.portType == .builtInMic }) ?? available.first
         }
@@ -151,6 +154,9 @@ final class AudioRouter: ObservableObject {
         guard !requireExternal || isExternal(desired) else {
             throw CameraError.message("A entrada escolhida é interna. Selecione a lapela ou desative Exigir microfone externo para testar sem ela.")
         }
+        if requireExternal { pinnedExternalID = desired.uid }
+        device.requireExternal = requireExternal
+        device.expectedInputUID = desired.uid
         if session.preferredInput?.uid != desired.uid || !session.currentRoute.inputs.contains(where: { $0.uid == desired.uid }) {
             try session.setPreferredInput(desired)
         }
@@ -158,27 +164,29 @@ final class AudioRouter: ObservableObject {
         guard session.currentRoute.inputs.contains(where: { $0.uid == desired.uid }) else {
             throw CameraError.message("O iOS ainda não ativou a entrada escolhida. O áudio foi bloqueado para não enviar o microfone interno por engano.")
         }
-        allowed = true; problem = ""
-        // Mute the outgoing RTC track, not the capture unit. Stopping the unit during
-        // a temporary route change can itself make wired inputs disappear again.
-        if !rtc.isAudioEnabled { rtc.isAudioEnabled = true }
+        device.refreshRouteGate()
+        allowed = device.captureAllowed; problem = ""
     }
 
     func enforce() {
         guard activated, !checking else { refresh(); return }
-        rtc.lockForConfiguration()
-        defer { rtc.unlockForConfiguration() }
+        let previous = route
+        // Changing the explicit choice releases the automatic pin.
+        if !selectedID.isEmpty && selectedID != pinnedExternalID { pinnedExternalID = "" }
         do { try selectRoute() }
-        catch { allowed = false; problem = error.localizedDescription; refresh() }
+        catch { allowed = false; device.captureAllowed = false; problem = error.localizedDescription; refresh() }
+        if previous != route { recordTransition("Rota alterada") }
+        if device.lastError != 0 {
+            allowed = false; device.captureAllowed = false
+            problem = "A captura de áudio não iniciou (código \(device.lastError)). Veja o diagnóstico."
+        }
     }
 
     func stop() {
         generation += 1
-        rtc.isAudioEnabled = false; allowed = false
+        device.captureAllowed = false; allowed = false; pinnedExternalID = ""
         guard activated else { return }
-        rtc.lockForConfiguration()
-        defer { rtc.unlockForConfiguration() }
-        try? rtc.setActive(false)
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         activated = false; refresh()
     }
 }

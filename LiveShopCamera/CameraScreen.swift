@@ -82,7 +82,7 @@ struct CameraScreen: View {
                     Text("Mantenha o app aberto e o iPhone desbloqueado. Câmera e áudio seguem por WebRTC diretamente ao navegador do computador. O servidor local apenas faz o pareamento.")
                         .font(.caption).foregroundStyle(.secondary)
                 }.padding()
-            }.navigationTitle("LiveShop Camera 0.1.2")
+            }.navigationTitle("LiveShop Camera 0.1.3")
         }
         .sheet(isPresented: $scanning) {
             QRScanner { result in
