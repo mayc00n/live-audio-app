@@ -1,9 +1,9 @@
 // !$*UTF8*$!
 { archiveVersion = 1; classes = {}; objectVersion = 56; objects = {
-38A0422F3FB4A593273319DC = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LiveShopCamera-Bridging-Header.h; sourceTree = "<group>"; };
+38A0422F3FB4A593273319DC = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LiveShopCamera/LiveShopCamera-Bridging-Header.h; sourceTree = SOURCE_ROOT; };
 6BB9BCE8E1669F34F318B899 = { isa = PBXBuildFile; fileRef = E33B6AE43D2164D2B73E5FED; };
-E33B6AE43D2164D2B73E5FED = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WiredAudioDevice.m; sourceTree = "<group>"; };
-BED4754DB7EF59B90FC750BF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WiredAudioDevice.h; sourceTree = "<group>"; };
+E33B6AE43D2164D2B73E5FED = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LiveShopCamera/WiredAudioDevice.m; sourceTree = SOURCE_ROOT; };
+BED4754DB7EF59B90FC750BF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LiveShopCamera/WiredAudioDevice.h; sourceTree = SOURCE_ROOT; };
 77CCB7C9D9F0285D3299B623 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveShopCameraApp.swift; sourceTree = "<group>"; };
 A20DA94F71C7D9B251FB4F16 = { isa = PBXBuildFile; fileRef = 77CCB7C9D9F0285D3299B623; };
 007EDA08B29496883EB24C88 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraScreen.swift; sourceTree = "<group>"; };
