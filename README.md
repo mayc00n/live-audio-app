@@ -1,5 +1,7 @@
 # LiveShop Camera para iPhone — primeira versão nativa
 
+Atualização **0.1.2**: [compilação aprovada](https://github.com/mayc00n/live-audio-app/actions/runs/43063460301), seleção da lente física 0,5x, recuperação da rota de lapela sem desligar a unidade de captura e estatísticas de áudio enviado. Use a extensão local 0.4.1 para dimensões de vídeo corrigidas, retomada do microfone e aba Áudio com escuta opcional. O funcionamento físico da lapela e o vídeo final no TikTok ainda precisam de teste no aparelho.
+
 Atualização **0.1.1**: [compilação para iPhone aprovada](https://github.com/mayc00n/live-audio-app/actions/runs/43056132828). Corrige a consulta de entradas após falha e adiciona diagnóstico comparando os modos Gravação, Comunicação e Padrão do iOS. Com o receptor conectado, use **Diagnosticar lapela nos três modos → Ver diagnóstico do microfone → Copiar diagnóstico**. Esse teste não transmite áudio nem confirma sozinho a captação física pela lapela.
 
 O app captura câmera e microfone com APIs nativas do iOS e envia mídia por WebRTC diretamente à extensão LiveShop Copilot no Chrome. O VDO.Ninja não participa. O servidor Windows existente continua necessário apenas para pareamento/sinalização; não recebe nem retransmite os quadros da câmera.
