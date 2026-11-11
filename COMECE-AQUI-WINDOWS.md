@@ -1,6 +1,6 @@
 # Compilar e instalar usando Windows e GitHub
 
-Esta pasta contém apenas o app nativo, sem arquivos da extensão, certificados locais ou dados de pareamento. A [compilação 0.1.1 em macOS para iPhone já passou](https://github.com/mayc00n/live-audio-app/actions/runs/43056132828). Baixe **LiveShopCamera-iPhone** em **Artifacts** nessa execução e avance à etapa 3. Os artefatos expiram após três dias; se necessário, gere novamente pela etapa 2.
+Esta pasta contém apenas o app nativo, sem arquivos da extensão, certificados locais ou dados de pareamento. A [compilação 0.1.2 em macOS para iPhone já passou](https://github.com/mayc00n/live-audio-app/actions/runs/43063460301). Baixe **LiveShopCamera-iPhone** em **Artifacts** nessa execução e avance à etapa 3. Os artefatos expiram após três dias; se necessário, gere novamente pela etapa 2.
 
 ## 1. Colocar o projeto em um repositório privado
 
